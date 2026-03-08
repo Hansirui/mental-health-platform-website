@@ -15,4 +15,4 @@ export function setUser(user) {
 
 export function clearUser() {
   localStorage.removeItem(KEY);
-} 
+}

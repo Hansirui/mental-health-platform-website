@@ -7,6 +7,9 @@ import HeroSection from './components/HeroSection'
 import Questionnaire from './pages/Questionnaire'
 import TextInput from './pages/TextInput'
 import ResultPage from './pages/ResultPage'
+import PlanPage from "./pages/PlanPage";
+import HistoryPage from "./pages/HistoryPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 function HomePage() {
   return (
@@ -149,6 +152,9 @@ function App() {
         <Route path="/questionnaire" element={<Questionnaire />} />
         <Route path="/text-input" element={<TextInput />} />
         <Route path="/result" element={<ResultPage />} />
+        <Route path="/plan" element={<PlanPage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
       </Routes>
     </BrowserRouter>
   )
