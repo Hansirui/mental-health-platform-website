@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { readPlan, writePlan, logAction } from "../utils/storage";
 
 const TASKS = [
@@ -20,20 +21,88 @@ export default function PlanPage() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "24px auto", padding: 16 }}>
-      <h2>7 天轻干预计划（演示版）</h2>
-      <p style={{ opacity: 0.8 }}>勾选完成情况（本地保存）。</p>
+    <div style={{ maxWidth: 980, margin: "24px auto", padding: 16, color: "#e5e7eb" }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+        <Link
+          to="/result"
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(148,163,184,.35)",
+            background: "#1e293b",
+            color: "#f8fafc",
+            textDecoration: "none",
+            fontWeight: 600,
+            display: "inline-block",
+          }}
+        >
+          返回结果页
+        </Link>
+
+        <Link
+          to="/"
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(148,163,184,.35)",
+            background: "#1e293b",
+            color: "#f8fafc",
+            textDecoration: "none",
+            fontWeight: 600,
+            display: "inline-block",
+          }}
+        >
+          返回首页
+        </Link>
+      </div>
+
+      <h2 style={{ fontSize: 40, fontWeight: 800, marginBottom: 12 }}>7 天轻干预计划（演示版）</h2>
+      <p style={{ color: "#cbd5e1", marginBottom: 20 }}>勾选完成情况（本地保存）。</p>
 
       {days.map((d) => (
-        <div key={d} style={{ marginTop: 14, padding: 16, borderRadius: 12, border: "1px solid rgba(255,255,255,.1)" }}>
-          <h3 style={{ marginTop: 0 }}>第 {d} 天</h3>
+        <div
+          key={d}
+          style={{
+            marginTop: 18,
+            padding: 20,
+            borderRadius: 16,
+            border: "1px solid rgba(148,163,184,.22)",
+            background: "rgba(15,23,42,.35)",
+            boxShadow: "0 6px 20px rgba(0,0,0,.18)",
+          }}
+        >
+          <h3 style={{ marginTop: 0, marginBottom: 14, fontSize: 30, color: "#f8fafc" }}>第 {d} 天</h3>
+
           {TASKS.map((t) => {
             const k = `${d}-${t.id}`;
             return (
-              <label key={k} style={{ display: "block", marginTop: 10, cursor: "pointer" }}>
-                <input type="checkbox" checked={!!done[k]} onChange={() => toggle(k, { day: d, task: t.id })} />
-                <span style={{ marginLeft: 8 }}>
-                  <b>{t.title}</b>：{t.detail}
+              <label
+                key={k}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  marginTop: 14,
+                  cursor: "pointer",
+                  color: "#e2e8f0",
+                  lineHeight: 1.8,
+                  fontSize: 18,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!done[k]}
+                  onChange={() => toggle(k, { day: d, task: t.id })}
+                  style={{
+                    marginTop: 6,
+                    width: 18,
+                    height: 18,
+                    accentColor: "#60a5fa",
+                    flexShrink: 0,
+                  }}
+                />
+                <span>
+                  <b style={{ color: "#f8fafc" }}>{t.title}</b>：{t.detail}
                 </span>
               </label>
             );
