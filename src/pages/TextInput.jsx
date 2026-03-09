@@ -15,9 +15,12 @@ export default function TextInput() {
     const risk = "低";
     const report = buildReport({ score, risk, tags, text });
 
+    const now = new Date().toISOString();
+
     const record = {
       id,
-      created_at: new Date().toISOString(),
+      timestamp: now,
+      created_at: now,
       type: "text",
       phq9_answers: null,
       phq9_score: null,
@@ -29,6 +32,16 @@ export default function TextInput() {
 
     saveRecord(record);
     logAction("submit_text", { id, tags });
+
+    fetch("http://localhost:3001/records", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(record),
+    }).catch((error) => {
+      console.error("Failed to save record to backend:", error);
+    });
 
     nav(`/result?id=${encodeURIComponent(id)}`);
   };
@@ -95,6 +108,21 @@ export default function TextInput() {
       <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 12, color: "#f8fafc" }}>
         文本输入
       </h2>
+
+      <div
+        style={{
+          marginBottom: 16,
+          padding: 12,
+          borderRadius: 12,
+          background: "rgba(250,204,21,.12)",
+          border: "1px solid rgba(250,204,21,.28)",
+          color: "#fde68a",
+          lineHeight: 1.8,
+          fontSize: 15,
+        }}
+      >
+        本系统仅用于初筛与建议，不替代专业诊断。
+      </div>
 
       <p style={{ color: "#cbd5e1", fontSize: 18, marginBottom: 18, lineHeight: 1.8 }}>
         请输入近两周的困扰，例如睡眠、压力、情绪、学习、人际等情况。

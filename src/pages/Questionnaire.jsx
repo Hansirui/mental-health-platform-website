@@ -20,9 +20,12 @@ export default function Questionnaire() {
     const id = crypto.randomUUID?.() || String(Date.now());
     const report = buildReport({ score, risk, tags: [], text: "" });
 
+    const now = new Date().toISOString();
+
     const record = {
       id,
-      created_at: new Date().toISOString(),
+      timestamp: now,
+      created_at: now,
       type: "questionnaire",
       phq9_answers: answers,
       phq9_score: score,
@@ -34,6 +37,17 @@ export default function Questionnaire() {
 
     saveRecord(record);
     logAction("submit_questionnaire", { id, score, risk });
+
+    fetch("http://localhost:3001/records", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(record),
+    }).catch((error) => {
+      console.error("Failed to save record to backend:", error);
+    });
+
     nav(`/result?id=${encodeURIComponent(id)}`);
   };
 
@@ -80,6 +94,21 @@ export default function Questionnaire() {
       <h2 style={{ fontSize: 40, fontWeight: 800, marginBottom: 12, color: "#f8fafc" }}>
         问卷评估（PHQ-9）
       </h2>
+
+      <div
+        style={{
+          marginBottom: 16,
+          padding: 12,
+          borderRadius: 12,
+          background: "rgba(250,204,21,.12)",
+          border: "1px solid rgba(250,204,21,.28)",
+          color: "#fde68a",
+          lineHeight: 1.8,
+          fontSize: 15,
+        }}
+      >
+        本系统仅用于初筛与建议，不替代专业诊断。
+      </div>
 
       <p style={{ color: "#cbd5e1", fontSize: 18, marginBottom: 18, lineHeight: 1.8 }}>
         0 = 完全没有　1 = 几天　2 = 一半以上天数　3 = 几乎每天

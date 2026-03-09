@@ -15,10 +15,9 @@ export function scorePHQ9(answers) {
 }
 
 export function riskLevel(score) {
-  // 中期演示阈值：可后续再调
-  if (score >= 20) return "高";
-  if (score >= 10) return "中";
-  return "低";
+  if (score >= 20) return "高风险";
+  if (score >= 10) return "中风险";
+  return "低风险";
 }
 
 export function keywordTags(text) {
