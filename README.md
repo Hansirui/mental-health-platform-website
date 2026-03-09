@@ -167,3 +167,25 @@ my-website/
 │  └─ main.jsx
 ├─ package.json
 └─ README.md
+
+
+## 1. 当前已完成任务
+
+### 1.1 MVP 闭环主链路已具备最小可运行实现
+- 最小后端四服务可独立启动：`user/data/assessment/intervention`（`services/MINIMAL_BACKEND_RUN.md`、`scripts/start_minimal_services.ps1`）。
+- 闭环脚本已覆盖登录→打卡→拉评估→拉任务→提交流程→带干预上下文再次评估（`scripts/smoke_e2e.sh`、`scripts/smoke_e2e.http`）。
+- Flow C 关键点“记录与指标同事务更新”已实现（`services/runtime/common.py` 中 `record_intervention` + `_upsert_user_metrics_in_tx`）。
+
+### 1.2 Android 客户端基础功能已成型
+- 已有登录/注册/主页底部导航与 5 个Tab：打卡、趋势、对话、训练、我的（`app/src/main/java/com/emoguard/app/ui/main/MainActivity.kt`）。
+- 已有情绪打卡、趋势图、CBT 表单、聊天、个人信息/登出页面（对应各 `ui/*Fragment.kt` 与 `res/layout/*`）。
+- Retrofit + OkHttp + 鉴权拦截器已接入，Token 会话读写已实现（`RetrofitClient.kt`、`AuthInterceptor.kt`、`PreferenceUtil.kt`）。
+
+### 1.3 网关安全基线框架已配置
+- Nginx 网关已配置统一鉴权、限流、审计日志、请求ID透传（`gateway/nginx/conf.d/emoguard-gateway.conf`）。
+- 已配置 API v1 路由与兼容别名路由，包含 `/api/v1/*` 主要业务路径。
+
+### 1.4 协议对齐与隐私约束做了第一轮落地
+- 登录请求使用 `login_name` 字段；Mood 打卡使用 `text_embedding/face_embedding` 字段（`LoginRequest.kt`、`MoodRecord.kt`）。
+- 已有单元测试验证上述协议映射（`app/src/test/java/com/emoguard/app/ProtocolMappingUnitTest.kt`；测试报告 `app/build/test-results/...xml`）。
+- 干预记录接口校验 `contains_raw_text`（`services/intervention-service/app.py`）。
