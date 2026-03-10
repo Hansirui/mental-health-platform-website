@@ -1,13 +1,43 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { getLatestRecord, getRecord, logAction } from "../utils/storage";
 
 export default function ResultPage() {
   const [sp] = useSearchParams();
   const id = sp.get("id");
-  const record = id ? getRecord(id) : getLatestRecord();
+
+  const [record, setRecord] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [sourceText, setSourceText] = useState("正在加载后端数据...");
 
   useEffect(() => {
+    const fetchRecord = async () => {
+      try {
+        const url = id
+          ? `http://localhost:3001/records/${encodeURIComponent(id)}`
+          : "http://localhost:3001/records/latest";
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch backend record");
+        }
+
+        const data = await response.json();
+        setRecord(data);
+        setSourceText(id ? "当前显示：后端单条记录" : "当前显示：后端最近记录");
+      } catch (error) {
+        console.error("Failed to load backend result, fallback to localStorage:", error);
+
+        const localRecord = id ? getRecord(id) : getLatestRecord();
+        setRecord(localRecord);
+        setSourceText("当前显示：本地记录（后端读取失败）");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecord();
     logAction("view_result", { id: id || "latest" });
   }, [id]);
 
@@ -46,6 +76,19 @@ export default function ResultPage() {
     display: "inline-block",
   };
 
+  if (loading) {
+    return (
+      <div style={pageStyle}>
+        <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16, color: "#f8fafc" }}>
+          结果展示
+        </h2>
+        <div style={cardStyle}>
+          <p style={{ color: "#cbd5e1" }}>正在加载数据...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!record) {
     return (
       <div style={pageStyle}>
@@ -58,6 +101,7 @@ export default function ResultPage() {
         <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16, color: "#f8fafc" }}>
           结果展示
         </h2>
+
         <div style={cardStyle}>
           <p style={{ color: "#cbd5e1", marginBottom: 14 }}>
             暂无记录，请先完成问卷评估或文本输入。
@@ -78,9 +122,13 @@ export default function ResultPage() {
         <Link to="/privacy" style={linkBtnStyle}>隐私与数据管理</Link>
       </div>
 
-      <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 20, color: "#f8fafc" }}>
+      <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 12, color: "#f8fafc" }}>
         结果报告
       </h2>
+
+      <p style={{ color: "#94a3b8", marginBottom: 18 }}>
+        {sourceText}
+      </p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <div style={infoCardStyle}>
@@ -128,7 +176,7 @@ export default function ResultPage() {
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>建议卡片</h3>
-        {report.recommendations.map((r, i) => (
+        {report?.recommendations?.map((r, i) => (
           <div
             key={i}
             style={{
@@ -148,7 +196,7 @@ export default function ResultPage() {
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>禁忌提示</h3>
-        {report.contraindications.map((c, i) => (
+        {report?.contraindications?.map((c, i) => (
           <div key={i} style={{ marginTop: 10, color: "#cbd5e1", lineHeight: 1.7 }}>
             <b style={{ color: "#f8fafc" }}>{c.title}</b>：{c.detail}
           </div>
@@ -157,7 +205,7 @@ export default function ResultPage() {
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>证据链（可解释路径）</h3>
-        {report.evidence_paths.map((p, i) => (
+        {report?.evidence_paths?.map((p, i) => (
           <div
             key={i}
             style={{
