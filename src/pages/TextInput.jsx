@@ -100,11 +100,6 @@ export default function TextInput() {
 
   return (
     <div style={pageStyle}>
-      <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-        <Link to="/" style={linkBtnStyle}>返回首页</Link>
-        <Link to="/result" style={linkBtnStyle}>查看最近结果</Link>
-      </div>
-
       <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 12, color: "#f8fafc" }}>
         文本输入
       </h2>
@@ -147,6 +142,11 @@ export default function TextInput() {
             生成报告
           </button>
         </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+        <Link to="/" style={linkBtnStyle}>返回首页</Link>
+        <Link to="/result" style={linkBtnStyle}>查看最近结果</Link>
       </div>
     </div>
   );

@@ -92,12 +92,6 @@ export default function ResultPage() {
   if (!record) {
     return (
       <div style={pageStyle}>
-        <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-          <Link to="/" style={linkBtnStyle}>返回首页</Link>
-          <Link to="/questionnaire" style={linkBtnStyle}>去问卷评估</Link>
-          <Link to="/text-input" style={linkBtnStyle}>去文本输入</Link>
-        </div>
-
         <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16, color: "#f8fafc" }}>
           结果展示
         </h2>
@@ -107,6 +101,12 @@ export default function ResultPage() {
             暂无记录，请先完成问卷评估或文本输入。
           </p>
         </div>
+
+        <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+          <Link to="/" style={linkBtnStyle}>返回首页</Link>
+          <Link to="/questionnaire" style={linkBtnStyle}>去问卷评估</Link>
+          <Link to="/text-input" style={linkBtnStyle}>去文本输入</Link>
+        </div>
       </div>
     );
   }
@@ -115,13 +115,6 @@ export default function ResultPage() {
 
   return (
     <div style={pageStyle}>
-      <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-        <Link to="/" style={linkBtnStyle}>返回首页</Link>
-        <Link to="/plan" style={linkBtnStyle}>去7天计划</Link>
-        <Link to="/history" style={linkBtnStyle}>查看历史记录</Link>
-        <Link to="/privacy" style={linkBtnStyle}>隐私与数据管理</Link>
-      </div>
-
       <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 12, color: "#f8fafc" }}>
         结果报告
       </h2>
@@ -225,6 +218,13 @@ export default function ResultPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+        <Link to="/" style={linkBtnStyle}>返回首页</Link>
+        <Link to="/plan" style={linkBtnStyle}>去7天计划</Link>
+        <Link to="/history" style={linkBtnStyle}>查看历史记录</Link>
+        <Link to="/privacy" style={linkBtnStyle}>隐私与数据管理</Link>
       </div>
     </div>
   );
