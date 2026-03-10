@@ -10,7 +10,7 @@ function HeroSection() {
       }}
     >
       <h1 style={{ fontSize: '56px', marginBottom: '20px' }}>
-        抑郁症智能评估与辅助干预平台
+        智能评估与辅助干预平台
       </h1>
 
       <p style={{ fontSize: '20px', color: '#cbd5e1', marginBottom: '16px' }}>
