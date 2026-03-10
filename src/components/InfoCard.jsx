@@ -2,76 +2,78 @@ import { Link } from 'react-router-dom'
 
 function InfoCard({ title, text, linkText, linkHref }) {
   const cardStyle = {
-    backgroundColor: '#172554',
-    padding: '24px',
-    borderRadius: '16px',
-    border: '1px solid rgba(255,255,255,0.08)',
-    transition: 'all 0.3s ease',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    minHeight: '220px'
+    backgroundColor: '#1e2f6d',
+    borderRadius: '20px',
+    padding: '30px',
+    minHeight: '220px',
+    boxShadow: '0 0 0 1px rgba(255,255,255,0.08) inset',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    cursor: linkHref ? 'pointer' : 'default'
   }
 
-  const handleMouseEnter = (e) => {
-    e.currentTarget.style.transform = 'translateY(-6px)'
-    e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.25)'
-  }
-
-  const handleMouseLeave = (e) => {
-    e.currentTarget.style.transform = 'translateY(0)'
-    e.currentTarget.style.boxShadow = 'none'
-  }
-
-  return (
+  const content = (
     <div
       style={cardStyle}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-6px)'
+        e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,0.28)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 0 0 1px rgba(255,255,255,0.08) inset'
+      }}
     >
-      <div>
-        <h3 style={{ marginTop: 0, marginBottom: '14px', fontSize: '22px' }}>{title}</h3>
-        <p style={{ color: '#cbd5e1', lineHeight: '1.7', marginBottom: '20px' }}>{text}</p>
-      </div>
+      <h3
+        style={{
+          color: 'white',
+          fontSize: '28px',
+          fontWeight: 'bold',
+          marginBottom: '20px'
+        }}
+      >
+        {title}
+      </h3>
 
-      {linkText && linkHref ? (
-        <Link
-          to={linkHref}
+      <p
+        style={{
+          color: '#dbeafe',
+          fontSize: '18px',
+          lineHeight: '1.8'
+        }}
+      >
+        {text}
+      </p>
+
+      {linkText && (
+        <div
           style={{
-            marginTop: '16px',
-            display: 'inline-block',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            textDecoration: 'none',
-            padding: '10px 16px',
-            borderRadius: '10px',
-            fontSize: '15px',
-            alignSelf: 'flex-start'
+            marginTop: '24px',
+            color: '#93c5fd',
+            fontWeight: 'bold',
+            fontSize: '16px'
           }}
         >
           {linkText}
-        </Link>
-      ) : linkText ? (
-        <a
-          href="#"
-          style={{
-            marginTop: '16px',
-            display: 'inline-block',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            textDecoration: 'none',
-            padding: '10px 16px',
-            borderRadius: '10px',
-            fontSize: '15px',
-            alignSelf: 'flex-start'
-          }}
-        >
-          {linkText}
-        </a>
-      ) : null}
+        </div>
+      )}
     </div>
   )
+
+  if (linkHref) {
+    return (
+      <Link
+        to={linkHref}
+        style={{
+          textDecoration: 'none',
+          display: 'block'
+        }}
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }
 
 export default InfoCard

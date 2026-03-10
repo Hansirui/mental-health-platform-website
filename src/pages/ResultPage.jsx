@@ -1,128 +1,183 @@
-import { Link } from 'react-router-dom'
-import PageHeader from '../components/PageHeader'
+import { useEffect } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { getLatestRecord, getRecord, logAction } from "../utils/storage";
 
-function ResultPage() {
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#0f172a',
-        color: 'white',
-        padding: '60px 24px',
-        fontFamily: 'Arial, sans-serif',
-        boxSizing: 'border-box'
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '1100px',
-          margin: '0 auto'
-        }}
-      >
-        <PageHeader
-          title="结果展示页面"
-          description="这里后续可以放评估得分、风险等级、关键词分析、辅助建议和趋势信息。当前先展示一个可演示的结果原型页面。"
-        />
+export default function ResultPage() {
+  const [sp] = useSearchParams();
+  const id = sp.get("id");
+  const record = id ? getRecord(id) : getLatestRecord();
 
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div
-            style={{
-              marginTop: '30px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '20px'
-            }}
-          >
-            <div style={cardStyle}>
-              <h3>评估得分</h3>
-              <p style={textStyle}>PHQ-9 示例得分：14 分</p>
-            </div>
+  useEffect(() => {
+    logAction("view_result", { id: id || "latest" });
+  }, [id]);
 
-            <div style={cardStyle}>
-              <h3>风险等级</h3>
-              <p style={textStyle}>当前结果：中度风险</p>
-            </div>
+  const pageStyle = {
+    maxWidth: 980,
+    margin: "24px auto",
+    padding: 16,
+    color: "#e5e7eb",
+  };
 
-            <div style={cardStyle}>
-              <h3>关键词</h3>
-              <p style={textStyle}>失眠、压力大、兴趣减退</p>
-            </div>
-          </div>
+  const cardStyle = {
+    padding: 16,
+    borderRadius: 14,
+    border: "1px solid rgba(148,163,184,.22)",
+    background: "rgba(15,23,42,.35)",
+    boxShadow: "0 6px 20px rgba(0,0,0,.18)",
+  };
 
-          <div
-            style={{
-              marginTop: '24px',
-              backgroundColor: '#172554',
-              padding: '24px',
-              borderRadius: '16px',
-              border: '1px solid rgba(255,255,255,0.08)'
-            }}
-          >
-            <h3>辅助建议</h3>
-            <p style={textStyle}>
-              建议保持规律作息，记录近期情绪波动，适当进行运动与社交；如持续低落，建议寻求专业帮助。
-            </p>
-          </div>
+  const infoCardStyle = {
+    padding: 14,
+    borderRadius: 12,
+    border: "1px solid rgba(148,163,184,.18)",
+    background: "rgba(255,255,255,.05)",
+    minWidth: 150,
+    color: "#e2e8f0",
+  };
 
-          <div
-            style={{
-              marginTop: '24px',
-              backgroundColor: '#172554',
-              padding: '24px',
-              borderRadius: '16px',
-              border: '1px solid rgba(255,255,255,0.08)'
-            }}
-          >
-            <h3>趋势图占位区</h3>
-            <p style={{ ...textStyle, marginBottom: '20px' }}>
-              这里后续可以接入情绪趋势、风险变化趋势和阶段性评估记录。
-            </p>
+  const linkBtnStyle = {
+    padding: "10px 14px",
+    borderRadius: 10,
+    border: "1px solid rgba(148,163,184,.35)",
+    background: "#1e293b",
+    color: "#f8fafc",
+    textDecoration: "none",
+    fontWeight: 600,
+    display: "inline-block",
+  };
 
-            <div
-              style={{
-                height: '220px',
-                borderRadius: '12px',
-                backgroundColor: '#0f172a',
-                border: '1px dashed rgba(255,255,255,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#94a3b8',
-                fontSize: '16px'
-              }}
-            >
-              趋势图预留区域
-            </div>
-          </div>
+  if (!record) {
+    return (
+      <div style={pageStyle}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+          <Link to="/" style={linkBtnStyle}>返回首页</Link>
+          <Link to="/questionnaire" style={linkBtnStyle}>去问卷评估</Link>
+          <Link to="/text-input" style={linkBtnStyle}>去文本输入</Link>
+        </div>
 
-          <div style={{ marginTop: '24px' }}>
-            <Link
-              to="/"
-              style={{
-                display: 'inline-block',
-                color: '#60a5fa',
-                textDecoration: 'none'
-              }}
-            >
-              返回首页
-            </Link>
-          </div>
+        <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16, color: "#f8fafc" }}>
+          结果展示
+        </h2>
+        <div style={cardStyle}>
+          <p style={{ color: "#cbd5e1", marginBottom: 14 }}>
+            暂无记录，请先完成问卷评估或文本输入。
+          </p>
         </div>
       </div>
+    );
+  }
+
+  const { phq9_score, risk_level, tags, report, created_at, type } = record;
+
+  return (
+    <div style={pageStyle}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+        <Link to="/" style={linkBtnStyle}>返回首页</Link>
+        <Link to="/plan" style={linkBtnStyle}>去7天计划</Link>
+        <Link to="/history" style={linkBtnStyle}>查看历史记录</Link>
+        <Link to="/privacy" style={linkBtnStyle}>隐私与数据管理</Link>
+      </div>
+
+      <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 20, color: "#f8fafc" }}>
+        结果报告
+      </h2>
+
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>来源</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{type}</div>
+        </div>
+
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>时间</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>
+            {new Date(created_at).toLocaleString()}
+          </div>
+        </div>
+
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>PHQ-9得分</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{phq9_score ?? "-"}</div>
+        </div>
+
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>风险等级</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{risk_level}</div>
+        </div>
+
+        <div style={{ ...infoCardStyle, flex: 1 }}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>标签</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{tags?.join(", ") || "无"}</div>
+        </div>
+      </div>
+
+      {risk_level === "高" && (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 14,
+            borderRadius: 12,
+            background: "rgba(239,68,68,.18)",
+            border: "1px solid rgba(248,113,113,.28)",
+            color: "#fee2e2",
+          }}
+        >
+          <b>安全提示：</b>如有自伤/自杀想法或紧急风险，请及时联系校心理中心、家人朋友或拨打 120 / 110。
+        </div>
+      )}
+
+      <div style={{ ...cardStyle, marginTop: 18 }}>
+        <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>建议卡片</h3>
+        {report.recommendations.map((r, i) => (
+          <div
+            key={i}
+            style={{
+              marginTop: 10,
+              padding: 14,
+              borderRadius: 12,
+              background: "rgba(59,130,246,.10)",
+              border: "1px solid rgba(96,165,250,.18)",
+              color: "#e2e8f0",
+            }}
+          >
+            <b style={{ color: "#f8fafc" }}>{r.title}</b>
+            <div style={{ marginTop: 6, color: "#cbd5e1", lineHeight: 1.7 }}>{r.detail}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ ...cardStyle, marginTop: 18 }}>
+        <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>禁忌提示</h3>
+        {report.contraindications.map((c, i) => (
+          <div key={i} style={{ marginTop: 10, color: "#cbd5e1", lineHeight: 1.7 }}>
+            <b style={{ color: "#f8fafc" }}>{c.title}</b>：{c.detail}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ ...cardStyle, marginTop: 18 }}>
+        <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>证据链（可解释路径）</h3>
+        {report.evidence_paths.map((p, i) => (
+          <div
+            key={i}
+            style={{
+              marginTop: 10,
+              padding: 14,
+              borderRadius: 12,
+              background: "rgba(255,255,255,.05)",
+              border: "1px solid rgba(148,163,184,.18)",
+              color: "#e2e8f0",
+            }}
+          >
+            <div style={{ lineHeight: 1.7 }}>
+              <b style={{ color: "#f8fafc" }}>路径：</b>{p.path.join(" → ")}
+            </div>
+            <div style={{ marginTop: 6, color: "#94a3b8" }}>
+              来源：{p.source} ｜ 置信度：{p.confidence}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
-
-const cardStyle = {
-  backgroundColor: '#172554',
-  padding: '24px',
-  borderRadius: '16px',
-  border: '1px solid rgba(255,255,255,0.08)'
-}
-
-const textStyle = {
-  color: '#cbd5e1',
-  lineHeight: '1.8'
-}
-
-export default ResultPage
