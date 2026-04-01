@@ -1,0 +1,162 @@
+[
+  {
+    "participant_id": 302,
+    "true_label": 0,
+    "phq8_score": 4,
+    "predicted_label": 0,
+    "risk_level": "低风险",
+    "is_correct": 1,
+    "text_preview": "i'm fine how about yourself i'm from los angeles california what part okay um all my family's here friends a mixture of people and a lot of things to do early childhood education no not right now but ...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 307,
+    "true_label": 0,
+    "phq8_score": 4,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 0,
+    "text_preview": "um moscow um my family moved to the u_s and then i moved down here eventually for college uh it took a long time to i've been living here for about a year since i graduated so there's been a lot of up...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 335,
+    "true_label": 1,
+    "phq8_score": 12,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yes i'm okay uh i'm from here originally los angeles mhm um i like the weather and my family's here which is why i'm here i moved away for a while uh i like that there's a lot of culture even though e...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 346,
+    "true_label": 1,
+    "phq8_score": 23,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yes i'm okay here in los angeles there's a lot of things to do i love the beach um i love the i love that it's sunny all the time um the amount of people um that's really about it the amount of people...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 367,
+    "true_label": 1,
+    "phq8_score": 19,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yes i'm okay um i'm a little pensive i guess a little uh down but more or less okay i was born in annapolis maryland on the east coast originally i moved because i went to film school um and but then ...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 377,
+    "true_label": 1,
+    "phq8_score": 16,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yeah go ahead um i'm okay i grew up in wisconsin and i lived in colorado for a bit and then i lived overseas for a little while then i moved to california mhm i moved here at the end of june of last y...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 381,
+    "true_label": 1,
+    "phq8_score": 16,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yes okay from santa monica uh the people mostly well the people also uh no not a lot well i can't afford to travel as much as i'd like to mm i was an english major uh i just liked reading a lot at the...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 382,
+    "true_label": 0,
+    "phq8_score": 0,
+    "predicted_label": 0,
+    "risk_level": "低风险",
+    "is_correct": 1,
+    "text_preview": "sure i'm doing fine i'm from columbia south carolina yep uh two thousand four yeah uh once a year for christmas break uh a lot slower paced more xxx i wanted to perform to pursue a film degree or i'm ...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 388,
+    "true_label": 1,
+    "phq8_score": 17,
+    "predicted_label": 0,
+    "risk_level": "低风险",
+    "is_correct": 0,
+    "text_preview": "yes doing alright from passaic new jersey yes uh about five years ago try to go back every year uh there's a lot more people change of scenery i'm still trying to get used to it the people just um emp...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 389,
+    "true_label": 1,
+    "phq8_score": 14,
+    "predicted_label": 0,
+    "risk_level": "低风险",
+    "is_correct": 0,
+    "text_preview": "sure okay a small town outside of cinncinatti ohio three years ago uh once a year small uh came out here for work grad school yeah trying to not easy people suck prejudice different weather the flashi...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 390,
+    "true_label": 0,
+    "phq8_score": 9,
+    "predicted_label": 0,
+    "risk_level": "低风险",
+    "is_correct": 1,
+    "text_preview": "yes i'm doing pretty well um i have some stressful circumstances going on but um um right now i'm i'm engaged i'm from minnesota mhm uh thirty one years ago half my life um frequently i've been back t...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 395,
+    "true_label": 0,
+    "phq8_score": 7,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 0,
+    "text_preview": "yes i'm doing fine california here in los angeles mhm um i love being near the beach um i love the beach i love um living in a big city um and i love the fact that i have lots of friends and family he...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 403,
+    "true_label": 0,
+    "phq8_score": 0,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 0,
+    "text_preview": "yes i'm doing really good i'm from granada hills california it's um the san fernando valley part of los angeles i love the weather i like the diversity in people i like how you can go to a neighborhoo...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 404,
+    "true_label": 0,
+    "phq8_score": 0,
+    "predicted_label": 0,
+    "risk_level": "低风险",
+    "is_correct": 1,
+    "text_preview": "yes doing good new york city well uh originally i was born here but uh spent some time back east and um moved back here and um basically sort of raised here so been here a while and i'm enjoying it th...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 413,
+    "true_label": 1,
+    "phq8_score": 10,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yes i'm doing okay i'm from greenwich connecticut yes um i moved here in two thousand eight so about five years ago um i try to go back at least once a year sometimes i go more sometimes less um overa...",
+    "model_name": "tfidf_lr"
+  },
+  {
+    "participant_id": 418,
+    "true_label": 1,
+    "phq8_score": 10,
+    "predicted_label": 1,
+    "risk_level": "高风险",
+    "is_correct": 1,
+    "text_preview": "yes i'm okay i was born in mississippi um when i was two and a half years old but actually it wasn't l_a it was santa monica yes never i was only two and a half years old i don't remember anything oh ...",
+    "model_name": "tfidf_lr"
+  }
+]

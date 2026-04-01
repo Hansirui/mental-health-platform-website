@@ -1,0 +1,6 @@
+{
+  "input_text": "I feel tired all the time. I do not sleep well at night, and I often feel hopeless about my future. Recently I do not want to talk to other people, and I have lost interest in many things.",
+  "predicted_label": 0,
+  "risk_level": "低风险",
+  "model_name": "tfidf_lr"
+}
