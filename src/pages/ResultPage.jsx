@@ -126,6 +126,21 @@ export default function ResultPage() {
         结果报告
       </h2>
 
+      <div
+        style={{
+          marginBottom: 16,
+          padding: 12,
+          borderRadius: 12,
+          background: "rgba(250,204,21,.12)",
+          border: "1px solid rgba(250,204,21,.28)",
+          color: "#fde68a",
+          lineHeight: 1.8,
+          fontSize: 15,
+        }}
+      >
+        本系统仅用于初筛与建议，不替代专业诊断。
+      </div>
+
       <p style={{ color: "#94a3b8", marginBottom: 18 }}>
         {sourceText}
       </p>
@@ -159,7 +174,7 @@ export default function ResultPage() {
         </div>
       </div>
 
-      {risk_level === "高" && (
+     {risk_level === "高风险" && (
         <div
           style={{
             marginTop: 16,
@@ -168,9 +183,13 @@ export default function ResultPage() {
             background: "rgba(239,68,68,.18)",
             border: "1px solid rgba(248,113,113,.28)",
             color: "#fee2e2",
+            lineHeight: 1.8,
           }}
         >
-          <b>安全提示：</b>如有自伤/自杀想法或紧急风险，请及时联系校心理中心、家人朋友或拨打 120 / 110。
+          <b>高风险提示：</b>
+          当前结果提示你可能处于需要重点关注的状态。本系统仅提供初筛与建议，
+          不可替代专业诊断。若已出现持续绝望、自伤、自杀想法或明显功能受损，
+          请尽快联系学校心理中心、家人朋友或专业医疗机构，必要时拨打 120 / 110。
         </div>
       )}
 
