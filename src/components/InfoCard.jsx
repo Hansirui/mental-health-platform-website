@@ -5,10 +5,15 @@ function InfoCard({ title, text, linkText, linkHref }) {
     backgroundColor: '#1e2f6d',
     borderRadius: '20px',
     padding: '30px',
-    minHeight: '220px',
+    minHeight: '260px',
+    height: '100%',
+    boxSizing: 'border-box',
     boxShadow: '0 0 0 1px rgba(255,255,255,0.08) inset',
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    cursor: linkHref ? 'pointer' : 'default'
+    cursor: linkHref ? 'pointer' : 'default',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between'
   }
 
   const content = (
@@ -23,34 +28,43 @@ function InfoCard({ title, text, linkText, linkHref }) {
         e.currentTarget.style.boxShadow = '0 0 0 1px rgba(255,255,255,0.08) inset'
       }}
     >
-      <h3
-        style={{
-          color: 'white',
-          fontSize: '28px',
-          fontWeight: 'bold',
-          marginBottom: '20px'
-        }}
-      >
-        {title}
-      </h3>
+      <div>
+        <h3
+          style={{
+            color: 'white',
+            fontSize: '28px',
+            fontWeight: 'bold',
+            marginTop: 0,
+            marginBottom: '20px'
+          }}
+        >
+          {title}
+        </h3>
 
-      <p
-        style={{
-          color: '#dbeafe',
-          fontSize: '18px',
-          lineHeight: '1.8'
-        }}
-      >
-        {text}
-      </p>
+        <p
+          style={{
+            color: '#dbeafe',
+            fontSize: '18px',
+            lineHeight: '1.8',
+            margin: 0
+          }}
+        >
+          {text}
+        </p>
+      </div>
 
       {linkText && (
         <div
           style={{
             marginTop: '24px',
-            color: '#93c5fd',
+            backgroundColor: '#2563eb',
+            color: 'white',
             fontWeight: 'bold',
-            fontSize: '16px'
+            fontSize: '16px',
+            padding: '10px 16px',
+            borderRadius: '10px',
+            display: 'inline-block',
+            alignSelf: 'flex-start'
           }}
         >
           {linkText}
@@ -65,7 +79,8 @@ function InfoCard({ title, text, linkText, linkHref }) {
         to={linkHref}
         style={{
           textDecoration: 'none',
-          display: 'block'
+          display: 'block',
+          height: '100%'
         }}
       >
         {content}

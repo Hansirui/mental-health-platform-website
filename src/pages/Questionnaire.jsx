@@ -1,22 +1,38 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PHQ9_ITEMS, scorePHQ9, riskLevel, buildReport } from "../utils/assessmentLogic";
 import { saveRecord, logAction } from "../utils/storage";
 
 export default function Questionnaire() {
   const nav = useNavigate();
-  const [answers, setAnswers] = useState(Array(9).fill(0));
+  const [answers, setAnswers] = useState(Array(9).fill(null));
+  const [error, setError] = useState("");
 
-  const score = useMemo(() => scorePHQ9(answers), [answers]);
-  const risk = useMemo(() => riskLevel(score), [score]);
+  const optionItems = [
+    { value: 0, label: " 完全没有" },
+    { value: 1, label: " 偶尔几天" },
+    { value: 2, label: " 一半以上天数" },
+    { value: 3, label: " 几乎每天" },
+  ];
 
   const onChange = (idx, val) => {
     const next = [...answers];
     next[idx] = Number(val);
     setAnswers(next);
+    setError("");
   };
 
   const submit = () => {
+    const hasEmpty = answers.some((item) => item === null);
+
+    if (hasEmpty) {
+      setError("请先完成全部题目，再提交生成报告。");
+      return;
+    }
+
+    const score = scorePHQ9(answers);
+    const risk = riskLevel(score);
+
     const id = crypto.randomUUID?.() || String(Date.now());
     const report = buildReport({ score, risk, tags: [], text: "" });
 
@@ -67,16 +83,28 @@ export default function Questionnaire() {
     boxShadow: "0 6px 20px rgba(0,0,0,.18)",
   };
 
-  const selectStyle = {
-    marginTop: 12,
-    padding: "10px 12px",
-    borderRadius: 10,
-    border: "1px solid rgba(148,163,184,.35)",
-    background: "#0f172a",
-    color: "#f8fafc",
-    fontSize: 16,
-    outline: "none",
+  const optionRowStyle = {
+    marginTop: 14,
+    display: "flex",
+    gap: 12,
+    flexWrap: "wrap",
   };
+
+  const optionBtnStyle = (active) => ({
+    minWidth: 150,
+    padding: "10px 18px",
+    borderRadius: 10,
+    border: active ? "1px solid #60a5fa" : "1px solid rgba(148,163,184,.35)",
+    background: active ? "#2563eb" : "#0f172a",
+    color: "#f8fafc",
+    fontSize: 15,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    boxShadow: active ? "0 0 0 2px rgba(96,165,250,.18)" : "none",
+    textAlign: "center",
+    whiteSpace: "nowrap",
+  });
 
   const submitBtnStyle = {
     padding: "10px 16px",
@@ -111,7 +139,7 @@ export default function Questionnaire() {
       </div>
 
       <p style={{ color: "#cbd5e1", fontSize: 18, marginBottom: 18, lineHeight: 1.8 }}>
-        0 = 完全没有　1 = 几天　2 = 一半以上天数　3 = 几乎每天
+        请选择每道题在近两周内出现的频率，提交后将在结果页显示总分与风险等级。
       </p>
 
       {PHQ9_ITEMS.map((q, i) => (
@@ -128,24 +156,42 @@ export default function Questionnaire() {
             {i + 1}. {q}
           </div>
 
-          <select
-            value={answers[i]}
-            onChange={(e) => onChange(i, e.target.value)}
-            style={selectStyle}
-          >
-            <option value={0}>0</option>
-            <option value={1}>1</option>
-            <option value={2}>2</option>
-            <option value={3}>3</option>
-          </select>
+          <div style={optionRowStyle}>
+            {optionItems.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => onChange(i, item.value)}
+                style={optionBtnStyle(answers[i] === item.value)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       ))}
+
+      {error && (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 14,
+            borderRadius: 12,
+            background: "rgba(239,68,68,.18)",
+            border: "1px solid rgba(248,113,113,.28)",
+            color: "#fee2e2",
+            lineHeight: 1.8,
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       <div
         style={{
           marginTop: 20,
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
           gap: 16,
           flexWrap: "wrap",
@@ -155,32 +201,10 @@ export default function Questionnaire() {
           background: "rgba(15,23,42,.35)",
         }}
       >
-        <div style={{ color: "#e2e8f0", fontSize: 18 }}>
-          当前得分：<b style={{ color: "#f8fafc" }}>{score}</b>
-          {"  "}｜{"  "}
-          风险等级：<b style={{ color: "#f8fafc" }}>{risk}</b>
-        </div>
-
         <button onClick={submit} style={submitBtnStyle}>
           提交生成报告
         </button>
       </div>
-
-      {risk === "高" && (
-        <div
-          style={{
-            marginTop: 14,
-            padding: 14,
-            borderRadius: 12,
-            background: "rgba(239,68,68,.18)",
-            border: "1px solid rgba(248,113,113,.28)",
-            color: "#fee2e2",
-            lineHeight: 1.8,
-          }}
-        >
-          <b>安全提示：</b>如有自伤、自杀想法或其他紧急风险，请及时联系校心理中心、家人朋友或拨打 120 / 110。
-        </div>
-      )}
     </div>
   );
 }
