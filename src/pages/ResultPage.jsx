@@ -14,8 +14,8 @@ export default function ResultPage() {
     const fetchRecord = async () => {
       try {
         const url = id
-          ? `http://localhost:3001/records/${encodeURIComponent(id)}`
-          : "http://localhost:3001/records/latest";
+          ? `http://127.0.0.1:5051/records/${encodeURIComponent(id)}`
+          : "http://127.0.0.1:5051/records/latest";
 
         const response = await fetch(url);
 
@@ -31,7 +31,7 @@ export default function ResultPage() {
 
         const localRecord = id ? getRecord(id) : getLatestRecord();
         setRecord(localRecord);
-        setSourceText("当前显示：本地记录（后端读取失败）");
+        setSourceText("当前显示：本地记录（联调回退模式）");
       } finally {
         setLoading(false);
       }
@@ -111,7 +111,7 @@ export default function ResultPage() {
     );
   }
 
-  const { phq9_score, risk_level, tags, report, created_at, type } = record;
+  const { phq9_score, risk_level, tags, report, created_at, type, baseline_result, text } = record;
 
   return (
     <div style={pageStyle}>
@@ -147,7 +147,7 @@ export default function ResultPage() {
         <div style={infoCardStyle}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>时间</div>
           <div style={{ fontWeight: 800, color: "#f8fafc" }}>
-            {new Date(created_at).toLocaleString()}
+            {created_at ? new Date(created_at).toLocaleString() : "-"}
           </div>
         </div>
 
@@ -167,7 +167,27 @@ export default function ResultPage() {
         </div>
       </div>
 
-     {risk_level === "高风险" && (
+      {baseline_result && (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>文本模型结果</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+            <div><b style={{ color: "#f8fafc" }}>模型名称：</b>{baseline_result.model_name || "-"}</div>
+            <div><b style={{ color: "#f8fafc" }}>预测标签：</b>{baseline_result.predicted_label ?? "-"}</div>
+            <div><b style={{ color: "#f8fafc" }}>模型风险等级：</b>{baseline_result.risk_level || "-"}</div>
+          </div>
+        </div>
+      )}
+
+      {text && (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>输入文本</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
+            {text}
+          </div>
+        </div>
+      )}
+
+      {risk_level === "高风险" && (
         <div
           style={{
             marginTop: 16,
@@ -188,55 +208,67 @@ export default function ResultPage() {
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>建议卡片</h3>
-        {report?.recommendations?.map((r, i) => (
-          <div
-            key={i}
-            style={{
-              marginTop: 10,
-              padding: 14,
-              borderRadius: 12,
-              background: "rgba(59,130,246,.10)",
-              border: "1px solid rgba(96,165,250,.18)",
-              color: "#e2e8f0",
-            }}
-          >
-            <b style={{ color: "#f8fafc" }}>{r.title}</b>
-            <div style={{ marginTop: 6, color: "#cbd5e1", lineHeight: 1.7 }}>{r.detail}</div>
-          </div>
-        ))}
+        {report?.recommendations?.length ? (
+          report.recommendations.map((r, i) => (
+            <div
+              key={i}
+              style={{
+                marginTop: 10,
+                padding: 14,
+                borderRadius: 12,
+                background: "rgba(59,130,246,.10)",
+                border: "1px solid rgba(96,165,250,.18)",
+                color: "#e2e8f0",
+              }}
+            >
+              <b style={{ color: "#f8fafc" }}>{r.title}</b>
+              <div style={{ marginTop: 6, color: "#cbd5e1", lineHeight: 1.7 }}>{r.detail}</div>
+            </div>
+          ))
+        ) : (
+          <div style={{ color: "#cbd5e1" }}>暂无建议内容</div>
+        )}
       </div>
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>禁忌提示</h3>
-        {report?.contraindications?.map((c, i) => (
-          <div key={i} style={{ marginTop: 10, color: "#cbd5e1", lineHeight: 1.7 }}>
-            <b style={{ color: "#f8fafc" }}>{c.title}</b>：{c.detail}
-          </div>
-        ))}
+        {report?.contraindications?.length ? (
+          report.contraindications.map((c, i) => (
+            <div key={i} style={{ marginTop: 10, color: "#cbd5e1", lineHeight: 1.7 }}>
+              <b style={{ color: "#f8fafc" }}>{c.title}</b>：{c.detail}
+            </div>
+          ))
+        ) : (
+          <div style={{ color: "#cbd5e1" }}>暂无禁忌提示</div>
+        )}
       </div>
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>证据链（可解释路径）</h3>
-        {report?.evidence_paths?.map((p, i) => (
-          <div
-            key={i}
-            style={{
-              marginTop: 10,
-              padding: 14,
-              borderRadius: 12,
-              background: "rgba(255,255,255,.05)",
-              border: "1px solid rgba(148,163,184,.18)",
-              color: "#e2e8f0",
-            }}
-          >
-            <div style={{ lineHeight: 1.7 }}>
-              <b style={{ color: "#f8fafc" }}>路径：</b>{p.path.join(" → ")}
+        {report?.evidence_paths?.length ? (
+          report.evidence_paths.map((p, i) => (
+            <div
+              key={i}
+              style={{
+                marginTop: 10,
+                padding: 14,
+                borderRadius: 12,
+                background: "rgba(255,255,255,.05)",
+                border: "1px solid rgba(148,163,184,.18)",
+                color: "#e2e8f0",
+              }}
+            >
+              <div style={{ lineHeight: 1.7 }}>
+                <b style={{ color: "#f8fafc" }}>路径：</b>{p.path.join(" → ")}
+              </div>
+              <div style={{ marginTop: 6, color: "#94a3b8" }}>
+                来源：{p.source} ｜ 置信度：{p.confidence}
+              </div>
             </div>
-            <div style={{ marginTop: 6, color: "#94a3b8" }}>
-              来源：{p.source} ｜ 置信度：{p.confidence}
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div style={{ color: "#cbd5e1" }}>暂无证据链内容</div>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>

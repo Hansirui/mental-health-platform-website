@@ -7,43 +7,80 @@ export default function TextInput() {
   const nav = useNavigate();
   const [text, setText] = useState("");
 
-  const submit = () => {
-    const id = crypto.randomUUID?.() || String(Date.now());
-    const tags = keywordTags(text);
+  const submit = async () => {
+    const trimmedText = text.trim();
+    if (!trimmedText) return;
 
-    const score = 0;
-    const risk = "低";
-    const report = buildReport({ score, risk, tags, text });
+    try {
+      const predictRes = await fetch("http://127.0.0.1:5051/predict_text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: trimmedText }),
+      });
 
-    const now = new Date().toISOString();
+      if (!predictRes.ok) {
+        throw new Error(`predict_text failed: ${predictRes.status}`);
+      }
 
-    const record = {
-      id,
-      timestamp: now,
-      created_at: now,
-      type: "text",
-      phq9_answers: null,
-      phq9_score: null,
-      risk_level: risk,
-      tags,
-      text,
-      report,
-    };
+      const predictData = await predictRes.json();
 
-    saveRecord(record);
-    logAction("submit_text", { id, tags });
+      const id = crypto.randomUUID?.() || String(Date.now());
+      const tags = keywordTags(trimmedText);
 
-    fetch("http://localhost:3001/records", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(record),
-    }).catch((error) => {
-      console.error("Failed to save record to backend:", error);
-    });
+      const score = null;
+      const risk =
+        predictData.risk_level === "高风险"
+          ? "高"
+          : predictData.risk_level === "低风险"
+          ? "低"
+          : "低";
 
-    nav(`/result?id=${encodeURIComponent(id)}`);
+      const report = buildReport({ score, risk, tags, text: trimmedText });
+
+      const now = new Date().toISOString();
+
+      const record = {
+        id,
+        timestamp: now,
+        created_at: now,
+        type: "text-baseline",
+        phq9_answers: null,
+        phq9_score: null,
+        risk_level: predictData.risk_level || "低风险",
+        tags,
+        text: trimmedText,
+        report,
+        baseline_result: {
+          input_text: predictData.input_text,
+          predicted_label: predictData.predicted_label,
+          risk_level: predictData.risk_level,
+          model_name: predictData.model_name,
+        },
+      };
+
+      saveRecord(record);
+      logAction("submit_text", {
+        id,
+        tags,
+        risk_level: predictData.risk_level,
+        model_name: predictData.model_name,
+      });
+
+      await fetch("http://127.0.0.1:5051/records", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(record),
+      });
+
+      nav(`/result?id=${encodeURIComponent(id)}`);
+    } catch (error) {
+      console.error("Text baseline submit failed:", error);
+      alert("文本分析接口调用失败，请确认 Flask 后端已启动。");
+    }
   };
 
   const pageStyle = {
