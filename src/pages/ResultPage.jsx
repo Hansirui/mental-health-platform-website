@@ -76,6 +76,20 @@ export default function ResultPage() {
     display: "inline-block",
   };
 
+  const getTypeLabel = (type) => {
+    if (type === "questionnaire") return "问卷";
+    if (type === "text") return "文本";
+    if (type === "combined") return "联合评估";
+    return type || "未知";
+  };
+
+  const getRiskStyle = (risk) => {
+    if (risk === "高风险") return { color: "#fca5a5" };
+    if (risk === "中风险") return { color: "#fdba74" };
+    if (risk === "轻度关注") return { color: "#fde68a" };
+    return { color: "#86efac" };
+  };
+
   if (loading) {
     return (
       <div style={pageStyle}>
@@ -111,7 +125,19 @@ export default function ResultPage() {
     );
   }
 
-  const { phq9_score, risk_level, tags, report, created_at, type, baseline_result, text } = record;
+  const {
+    phq9_score,
+    risk_level,
+    tags,
+    report,
+    created_at,
+    type,
+    baseline_result,
+    text,
+    explanations,
+    symptom_signals,
+    warnings,
+  } = record;
 
   return (
     <div style={pageStyle}>
@@ -141,7 +167,7 @@ export default function ResultPage() {
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <div style={infoCardStyle}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>来源</div>
-          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{type}</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{getTypeLabel(type)}</div>
         </div>
 
         <div style={infoCardStyle}>
@@ -158,22 +184,69 @@ export default function ResultPage() {
 
         <div style={infoCardStyle}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>风险等级</div>
-          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{risk_level}</div>
+          <div style={{ ...getRiskStyle(risk_level), fontWeight: 800 }}>
+            {risk_level || "-"}
+          </div>
         </div>
 
         <div style={{ ...infoCardStyle, flex: 1 }}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>标签</div>
-          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{tags?.join(", ") || "无"}</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{tags?.join("、") || "无"}</div>
         </div>
       </div>
 
+      {symptom_signals?.length ? (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>识别到的关键状态</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+            {symptom_signals.map((item, idx) => (
+              <div key={idx}>- {item}</div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {explanations?.length ? (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>判断依据</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+            {explanations.map((item, idx) => (
+              <div key={idx}>- {item}</div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {baseline_result && (
         <div style={{ ...cardStyle, marginTop: 18 }}>
-          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>文本模型结果</h3>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>实验模型结果</h3>
+
+          <div
+            style={{
+              marginBottom: 14,
+              padding: 12,
+              borderRadius: 12,
+              background: "rgba(59,130,246,.10)",
+              border: "1px solid rgba(96,165,250,.18)",
+              color: "#cbd5e1",
+              lineHeight: 1.8,
+              fontSize: 15,
+            }}
+          >
+            当前实验模型基于英文访谈数据训练，对中文输入结果仅供参考。
+          </div>
+
           <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
             <div><b style={{ color: "#f8fafc" }}>模型名称：</b>{baseline_result.model_name || "-"}</div>
             <div><b style={{ color: "#f8fafc" }}>预测标签：</b>{baseline_result.predicted_label ?? "-"}</div>
             <div><b style={{ color: "#f8fafc" }}>模型风险等级：</b>{baseline_result.risk_level || "-"}</div>
+            <div><b style={{ color: "#f8fafc" }}>阈值：</b>{baseline_result.threshold ?? "-"}</div>
+            <div>
+              <b style={{ color: "#f8fafc" }}>正类概率：</b>
+              {baseline_result.probability?.label_1 != null
+                ? Number(baseline_result.probability.label_1).toFixed(3)
+                : "-"}
+            </div>
           </div>
         </div>
       )}
@@ -187,7 +260,7 @@ export default function ResultPage() {
         </div>
       )}
 
-      {risk_level === "高风险" && (
+      {(warnings?.length || risk_level === "高风险") && (
         <div
           style={{
             marginTop: 16,
@@ -200,9 +273,9 @@ export default function ResultPage() {
           }}
         >
           <b>高风险提示：</b>
-          当前结果提示你可能处于需要重点关注的状态。本系统仅提供初筛与建议，
-          不可替代专业诊断。若已出现持续绝望、自伤、自杀想法或明显功能受损，
-          请尽快联系学校心理中心、家人朋友或专业医疗机构，必要时拨打 120 / 110。
+          {warnings?.length
+            ? warnings.join(" ")
+            : "当前结果提示你可能处于需要重点关注的状态。本系统仅提供初筛与建议，不可替代专业诊断。若已出现持续绝望、自伤、自杀想法或明显功能受损，请尽快联系学校心理中心、家人朋友或专业医疗机构，必要时拨打 120 / 110。"}
         </div>
       )}
 

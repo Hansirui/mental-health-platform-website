@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PHQ9_ITEMS, scorePHQ9, riskLevel, buildReport } from "../utils/assessmentLogic";
+import { PHQ9_ITEMS } from "../utils/assessmentLogic";
 import { saveRecord, logAction } from "../utils/storage";
 
 export default function Questionnaire() {
   const nav = useNavigate();
   const [answers, setAnswers] = useState(Array(9).fill(null));
+  const [text, setText] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const optionItems = [
     { value: 0, label: " 完全没有" },
@@ -22,7 +24,7 @@ export default function Questionnaire() {
     setError("");
   };
 
-  const submit = () => {
+  const submit = async () => {
     const hasEmpty = answers.some((item) => item === null);
 
     if (hasEmpty) {
@@ -30,41 +32,43 @@ export default function Questionnaire() {
       return;
     }
 
-    const score = scorePHQ9(answers);
-    const risk = riskLevel(score);
+    setSubmitting(true);
+    setError("");
 
-    const id = crypto.randomUUID?.() || String(Date.now());
-    const report = buildReport({ score, risk, tags: [], text: "" });
+    try {
+      const response = await fetch("http://127.0.0.1:5051/assessment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phq9_answers: answers,
+          text: text.trim(),
+        }),
+      });
 
-    const now = new Date().toISOString();
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "问卷评估请求失败");
+      }
 
-    const record = {
-      id,
-      timestamp: now,
-      created_at: now,
-      type: "questionnaire",
-      phq9_answers: answers,
-      phq9_score: score,
-      risk_level: risk,
-      tags: [],
-      text: "",
-      report,
-    };
+      const record = await response.json();
 
-    saveRecord(record);
-    logAction("submit_questionnaire", { id, score, risk });
+      saveRecord(record);
+      logAction("submit_questionnaire", {
+        id: record.id,
+        score: record.phq9_score,
+        risk: record.risk_level,
+        tags: record.tags || [],
+      });
 
-    fetch("http://localhost:3001/records", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(record),
-    }).catch((error) => {
-      console.error("Failed to save record to backend:", error);
-    });
-
-    nav(`/result?id=${encodeURIComponent(id)}`);
+      nav(`/result?id=${encodeURIComponent(record.id)}`);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "提交失败，请检查后端是否启动。");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const pageStyle = {
@@ -109,12 +113,27 @@ export default function Questionnaire() {
   const submitBtnStyle = {
     padding: "10px 16px",
     borderRadius: 10,
-    background: "#2563eb",
+    background: submitting ? "#64748b" : "#2563eb",
     color: "#fff",
     border: "none",
-    cursor: "pointer",
+    cursor: submitting ? "not-allowed" : "pointer",
     fontWeight: 700,
     fontSize: 15,
+  };
+
+  const textareaStyle = {
+    width: "100%",
+    minHeight: 140,
+    padding: 14,
+    borderRadius: 12,
+    border: "1px solid rgba(148,163,184,.28)",
+    background: "#0f172a",
+    color: "#f8fafc",
+    fontSize: 16,
+    lineHeight: 1.8,
+    resize: "vertical",
+    outline: "none",
+    boxSizing: "border-box",
   };
 
   return (
@@ -139,7 +158,7 @@ export default function Questionnaire() {
       </div>
 
       <p style={{ color: "#cbd5e1", fontSize: 18, marginBottom: 18, lineHeight: 1.8 }}>
-        请选择每道题在近两周内出现的频率，提交后将在结果页显示总分与风险等级。
+        请选择每道题在近两周内出现的频率；也可以在下方补充近况描述，系统会生成更完整的综合报告。
       </p>
 
       {PHQ9_ITEMS.map((q, i) => (
@@ -163,6 +182,7 @@ export default function Questionnaire() {
                 type="button"
                 onClick={() => onChange(i, item.value)}
                 style={optionBtnStyle(answers[i] === item.value)}
+                disabled={submitting}
               >
                 {item.label}
               </button>
@@ -170,6 +190,19 @@ export default function Questionnaire() {
           </div>
         </div>
       ))}
+
+      <div style={{ ...questionCardStyle, marginTop: 20 }}>
+        <div style={{ fontSize: 18, color: "#f8fafc", fontWeight: 600, marginBottom: 10 }}>
+          近况补充（可选）
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          style={textareaStyle}
+          placeholder="例如：最近学习压力比较大，晚上经常失眠，情绪比较低落……"
+          disabled={submitting}
+        />
+      </div>
 
       {error && (
         <div
@@ -201,8 +234,8 @@ export default function Questionnaire() {
           background: "rgba(15,23,42,.35)",
         }}
       >
-        <button onClick={submit} style={submitBtnStyle}>
-          提交生成报告
+        <button onClick={submit} style={submitBtnStyle} disabled={submitting}>
+          {submitting ? "提交中..." : "提交生成综合报告"}
         </button>
       </div>
     </div>

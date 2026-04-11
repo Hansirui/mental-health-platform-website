@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { readHistory } from "../utils/storage";
 
@@ -10,14 +10,14 @@ export default function TrendPage() {
   useEffect(() => {
     const fetchTrendData = async () => {
       try {
-        const response = await fetch("http://localhost:3001/records");
+        const response = await fetch("http://127.0.0.1:5051/records");
 
         if (!response.ok) {
           throw new Error("Failed to fetch backend records");
         }
 
         const data = await response.json();
-        setHistory(data);
+        setHistory(Array.isArray(data) ? data : []);
         setSourceText("当前显示：后端趋势数据");
       } catch (error) {
         console.error("Failed to load backend trend data, fallback to localStorage:", error);
@@ -46,6 +46,15 @@ export default function TrendPage() {
     boxShadow: "0 6px 20px rgba(0,0,0,.18)",
   };
 
+  const infoCardStyle = {
+    padding: 14,
+    borderRadius: 12,
+    border: "1px solid rgba(148,163,184,.18)",
+    background: "rgba(255,255,255,.05)",
+    minWidth: 180,
+    color: "#e2e8f0",
+  };
+
   const linkBtnStyle = {
     padding: "10px 14px",
     borderRadius: 10,
@@ -57,11 +66,42 @@ export default function TrendPage() {
     display: "inline-block",
   };
 
-  const latestFive = history.slice(0, 5).reverse();
+  const latestFive = useMemo(() => history.slice(0, 5).reverse(), [history]);
+  const latest = history[0] || null;
+  const previous = history[1] || null;
+
+  const getTypeLabel = (type) => {
+    if (type === "questionnaire") return "问卷";
+    if (type === "text") return "文本";
+    if (type === "combined") return "联合评估";
+    return type || "未知";
+  };
+
+  const getRiskStyle = (risk) => {
+    if (risk === "高风险") return { color: "#fca5a5" };
+    if (risk === "中风险") return { color: "#fdba74" };
+    if (risk === "轻度关注") return { color: "#fde68a" };
+    return { color: "#86efac" };
+  };
+
+  const getScoreDiffText = () => {
+    if (!latest || !previous) return "暂无可对比的上一条记录";
+    if (latest.phq9_score == null || previous.phq9_score == null) return "最近两条记录中至少有一条无量表分数";
+    const diff = latest.phq9_score - previous.phq9_score;
+    if (diff > 0) return `较上一次 +${diff}`;
+    if (diff < 0) return `较上一次 ${diff}`;
+    return "较上一次无变化";
+    };
+
+  const getRiskDiffText = () => {
+    if (!latest || !previous) return "暂无可对比的上一条记录";
+    if (latest.risk_level === previous.risk_level) return "风险等级无变化";
+    return `由 ${previous.risk_level || "-"} 变化为 ${latest.risk_level || "-"}`;
+  };
 
   const renderScoreBar = (score) => {
     const safeScore = Number(score) || 0;
-    const width = `${Math.min(safeScore * 8, 100)}%`;
+    const width = `${Math.min(safeScore * 4, 100)}%`;
 
     return (
       <div
@@ -102,6 +142,43 @@ export default function TrendPage() {
         {sourceText}
       </p>
 
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>最近记录数</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{history.length}</div>
+        </div>
+
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>最近一次类型</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{latest ? getTypeLabel(latest.type) : "-"}</div>
+        </div>
+
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>最近一次风险</div>
+          <div style={{ ...getRiskStyle(latest?.risk_level), fontWeight: 800 }}>
+            {latest?.risk_level || "-"}
+          </div>
+        </div>
+
+        <div style={infoCardStyle}>
+          <div style={{ color: "#94a3b8", marginBottom: 6 }}>最近一次 PHQ-9</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>
+            {latest?.phq9_score ?? "-"}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ ...cardStyle, marginBottom: 18 }}>
+        <h3 style={{ fontSize: 24, marginBottom: 14, color: "#f8fafc" }}>
+          变化摘要
+        </h3>
+
+        <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+          <div>分数变化：{getScoreDiffText()}</div>
+          <div>风险变化：{getRiskDiffText()}</div>
+        </div>
+      </div>
+
       <div style={cardStyle}>
         <h3 style={{ fontSize: 26, marginBottom: 14, color: "#f8fafc" }}>
           最近评估趋势
@@ -126,16 +203,25 @@ export default function TrendPage() {
                   }}
                 >
                   <div style={{ color: "#f8fafc", fontWeight: 700 }}>
-                    {new Date(item.created_at).toLocaleString()}
+                    {item.created_at ? new Date(item.created_at).toLocaleString() : "-"}
                   </div>
 
                   <div style={{ marginTop: 6 }}>
-                    类型：{item.type} ｜ 分数：{item.phq9_score ?? "-"} ｜ 风险：{item.risk_level}
+                    类型：{getTypeLabel(item.type)} ｜ 分数：{item.phq9_score ?? "-"} ｜ 风险：
+                    <span style={{ ...getRiskStyle(item.risk_level), fontWeight: 700 }}>
+                      {" "}{item.risk_level || "-"}
+                    </span>
                   </div>
 
                   <div style={{ marginTop: 6 }}>
                     标签：{item.tags?.join("，") || "无"}
                   </div>
+
+                  {item.text ? (
+                    <div style={{ marginTop: 6, color: "#94a3b8", lineHeight: 1.7 }}>
+                      文本摘要：{item.text.length > 50 ? `${item.text.slice(0, 50)}...` : item.text}
+                    </div>
+                  ) : null}
 
                   {item.phq9_score !== null && item.phq9_score !== undefined && (
                     <div style={{ marginTop: 8 }}>
@@ -163,7 +249,7 @@ export default function TrendPage() {
               <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
                 {latestFive.map((item, index) => (
                   <div key={item.id || index}>
-                    第 {index + 1} 次：{item.risk_level}
+                    第 {index + 1} 次：{item.risk_level || "-"}
                   </div>
                 ))}
               </div>

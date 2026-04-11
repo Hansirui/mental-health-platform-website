@@ -22,3 +22,54 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# node / frontend
+node_modules/
+dist/
+build/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# local data
+raw_data/
+datasets/
+ml/processed_data/
+ml/checkpoints/
+ml/outputs/
+
+# server local files
+server/db.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+# node / frontend
+node_modules/
+dist/
+build/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# local data
+raw_data/
+datasets/
+ml/processed_data/
+ml/checkpoints/
+ml/outputs/
+
+# server local files
+server/db.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
