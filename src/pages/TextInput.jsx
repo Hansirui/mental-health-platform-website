@@ -1,49 +1,55 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { keywordTags, buildReport } from "../utils/assessmentLogic";
 import { saveRecord, logAction } from "../utils/storage";
 
 export default function TextInput() {
   const nav = useNavigate();
   const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const submit = () => {
-    const id = crypto.randomUUID?.() || String(Date.now());
-    const tags = keywordTags(text);
+  const submit = async () => {
+    const trimmedText = text.trim();
+    if (!trimmedText) {
+      setError("请输入近况文本后再提交。");
+      return;
+    }
 
-    const score = 0;
-    const risk = "低";
-    const report = buildReport({ score, risk, tags, text });
+    setLoading(true);
+    setError("");
 
-    const now = new Date().toISOString();
+    try {
+      const response = await fetch("http://127.0.0.1:5051/assessment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: trimmedText,
+        }),
+      });
 
-    const record = {
-      id,
-      timestamp: now,
-      created_at: now,
-      type: "text",
-      phq9_answers: null,
-      phq9_score: null,
-      risk_level: risk,
-      tags,
-      text,
-      report,
-    };
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "文本评估请求失败");
+      }
 
-    saveRecord(record);
-    logAction("submit_text", { id, tags });
+      const record = await response.json();
 
-    fetch("http://localhost:3001/records", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(record),
-    }).catch((error) => {
-      console.error("Failed to save record to backend:", error);
-    });
+      saveRecord(record);
+      logAction("submit_text", {
+        id: record.id,
+        risk_level: record.risk_level,
+        tags: record.tags || [],
+      });
 
-    nav(`/result?id=${encodeURIComponent(id)}`);
+      nav(`/result?id=${encodeURIComponent(record.id)}`);
+    } catch (err) {
+      console.error("Text assessment submit failed:", err);
+      setError(err.message || "文本分析接口调用失败，请确认 Flask 后端已启动。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const pageStyle = {
@@ -90,10 +96,10 @@ export default function TextInput() {
   const submitBtnStyle = {
     padding: "10px 16px",
     borderRadius: 10,
-    background: "#2563eb",
+    background: loading ? "#64748b" : "#2563eb",
     color: "#fff",
     border: "none",
-    cursor: "pointer",
+    cursor: loading ? "not-allowed" : "pointer",
     fontWeight: 700,
     fontSize: 15,
   };
@@ -130,16 +136,32 @@ export default function TextInput() {
           onChange={(e) => setText(e.target.value)}
           style={textareaStyle}
           placeholder="例如：最近压力很大，晚上睡不好，情绪有点低落，注意力也不太集中……"
+          disabled={loading}
         />
 
-        <div style={{ marginTop: 16, color: "#cbd5e1", fontSize: 17, lineHeight: 1.8 }}>
-          识别标签：
-          <b style={{ color: "#f8fafc" }}> {keywordTags(text).join("，") || "无"}</b>
+        <div style={{ marginTop: 12, color: "#94a3b8", fontSize: 14 }}>
+          当前字数：{text.trim().length}
         </div>
 
+        {error && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: 14,
+              borderRadius: 12,
+              background: "rgba(239,68,68,.18)",
+              border: "1px solid rgba(248,113,113,.28)",
+              color: "#fee2e2",
+              lineHeight: 1.8,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <div style={{ marginTop: 18 }}>
-          <button onClick={submit} style={submitBtnStyle}>
-            生成报告
+          <button onClick={submit} style={submitBtnStyle} disabled={loading}>
+            {loading ? "生成中..." : "生成报告"}
           </button>
         </div>
       </div>

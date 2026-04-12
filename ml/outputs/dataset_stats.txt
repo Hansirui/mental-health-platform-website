@@ -1,0 +1,26 @@
+full 样本数: 83
+train 样本数: 67
+dev 样本数: 16
+
+train 标签分布:
+phq8_binary
+0    44
+1    23
+Name: count, dtype: int64
+
+dev 标签分布:
+phq8_binary
+1    9
+0    7
+Name: count, dtype: int64
+
+文本长度统计（full）:
+count      83.000000
+mean     1416.120482
+std       825.130062
+min       165.000000
+25%       762.000000
+50%      1192.000000
+75%      1847.500000
+max      4103.000000
+Name: text_length, dtype: float64

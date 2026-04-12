@@ -14,8 +14,8 @@ export default function ResultPage() {
     const fetchRecord = async () => {
       try {
         const url = id
-          ? `http://localhost:3001/records/${encodeURIComponent(id)}`
-          : "http://localhost:3001/records/latest";
+          ? `http://127.0.0.1:5051/records/${encodeURIComponent(id)}`
+          : "http://127.0.0.1:5051/records/latest";
 
         const response = await fetch(url);
 
@@ -31,7 +31,7 @@ export default function ResultPage() {
 
         const localRecord = id ? getRecord(id) : getLatestRecord();
         setRecord(localRecord);
-        setSourceText("当前显示：本地记录（后端读取失败）");
+        setSourceText("当前显示：本地记录（联调回退模式）");
       } finally {
         setLoading(false);
       }
@@ -76,6 +76,20 @@ export default function ResultPage() {
     display: "inline-block",
   };
 
+  const getTypeLabel = (type) => {
+    if (type === "questionnaire") return "问卷";
+    if (type === "text") return "文本";
+    if (type === "combined") return "联合评估";
+    return type || "未知";
+  };
+
+  const getRiskStyle = (risk) => {
+    if (risk === "高风险") return { color: "#fca5a5" };
+    if (risk === "中风险") return { color: "#fdba74" };
+    if (risk === "轻度关注") return { color: "#fde68a" };
+    return { color: "#86efac" };
+  };
+
   if (loading) {
     return (
       <div style={pageStyle}>
@@ -111,13 +125,40 @@ export default function ResultPage() {
     );
   }
 
-  const { phq9_score, risk_level, tags, report, created_at, type } = record;
+  const {
+    phq9_score,
+    risk_level,
+    tags,
+    report,
+    created_at,
+    type,
+    baseline_result,
+    text,
+    explanations,
+    symptom_signals,
+    warnings,
+  } = record;
 
   return (
     <div style={pageStyle}>
       <h2 style={{ fontSize: 38, fontWeight: 800, marginBottom: 12, color: "#f8fafc" }}>
         结果报告
       </h2>
+
+      <div
+        style={{
+          marginBottom: 16,
+          padding: 12,
+          borderRadius: 12,
+          background: "rgba(250,204,21,.12)",
+          border: "1px solid rgba(250,204,21,.28)",
+          color: "#fde68a",
+          lineHeight: 1.8,
+          fontSize: 15,
+        }}
+      >
+        本系统仅用于初筛与建议，不替代专业诊断。
+      </div>
 
       <p style={{ color: "#94a3b8", marginBottom: 18 }}>
         {sourceText}
@@ -126,13 +167,13 @@ export default function ResultPage() {
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <div style={infoCardStyle}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>来源</div>
-          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{type}</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{getTypeLabel(type)}</div>
         </div>
 
         <div style={infoCardStyle}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>时间</div>
           <div style={{ fontWeight: 800, color: "#f8fafc" }}>
-            {new Date(created_at).toLocaleString()}
+            {created_at ? new Date(created_at).toLocaleString() : "-"}
           </div>
         </div>
 
@@ -143,16 +184,83 @@ export default function ResultPage() {
 
         <div style={infoCardStyle}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>风险等级</div>
-          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{risk_level}</div>
+          <div style={{ ...getRiskStyle(risk_level), fontWeight: 800 }}>
+            {risk_level || "-"}
+          </div>
         </div>
 
         <div style={{ ...infoCardStyle, flex: 1 }}>
           <div style={{ color: "#94a3b8", marginBottom: 6 }}>标签</div>
-          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{tags?.join(", ") || "无"}</div>
+          <div style={{ fontWeight: 800, color: "#f8fafc" }}>{tags?.join("、") || "无"}</div>
         </div>
       </div>
 
-      {risk_level === "高" && (
+      {symptom_signals?.length ? (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>识别到的关键状态</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+            {symptom_signals.map((item, idx) => (
+              <div key={idx}>- {item}</div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {explanations?.length ? (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>判断依据</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+            {explanations.map((item, idx) => (
+              <div key={idx}>- {item}</div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {baseline_result && (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>实验模型结果</h3>
+
+          <div
+            style={{
+              marginBottom: 14,
+              padding: 12,
+              borderRadius: 12,
+              background: "rgba(59,130,246,.10)",
+              border: "1px solid rgba(96,165,250,.18)",
+              color: "#cbd5e1",
+              lineHeight: 1.8,
+              fontSize: 15,
+            }}
+          >
+            当前实验模型基于英文访谈数据训练，对中文输入结果仅供参考。
+          </div>
+
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9 }}>
+            <div><b style={{ color: "#f8fafc" }}>模型名称：</b>{baseline_result.model_name || "-"}</div>
+            <div><b style={{ color: "#f8fafc" }}>预测标签：</b>{baseline_result.predicted_label ?? "-"}</div>
+            <div><b style={{ color: "#f8fafc" }}>模型风险等级：</b>{baseline_result.risk_level || "-"}</div>
+            <div><b style={{ color: "#f8fafc" }}>阈值：</b>{baseline_result.threshold ?? "-"}</div>
+            <div>
+              <b style={{ color: "#f8fafc" }}>正类概率：</b>
+              {baseline_result.probability?.label_1 != null
+                ? Number(baseline_result.probability.label_1).toFixed(3)
+                : "-"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {text && (
+        <div style={{ ...cardStyle, marginTop: 18 }}>
+          <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>输入文本</h3>
+          <div style={{ color: "#cbd5e1", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
+            {text}
+          </div>
+        </div>
+      )}
+
+      {(warnings?.length || risk_level === "高风险") && (
         <div
           style={{
             marginTop: 16,
@@ -161,63 +269,79 @@ export default function ResultPage() {
             background: "rgba(239,68,68,.18)",
             border: "1px solid rgba(248,113,113,.28)",
             color: "#fee2e2",
+            lineHeight: 1.8,
           }}
         >
-          <b>安全提示：</b>如有自伤/自杀想法或紧急风险，请及时联系校心理中心、家人朋友或拨打 120 / 110。
+          <b>高风险提示：</b>
+          {warnings?.length
+            ? warnings.join(" ")
+            : "当前结果提示你可能处于需要重点关注的状态。本系统仅提供初筛与建议，不可替代专业诊断。若已出现持续绝望、自伤、自杀想法或明显功能受损，请尽快联系学校心理中心、家人朋友或专业医疗机构，必要时拨打 120 / 110。"}
         </div>
       )}
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>建议卡片</h3>
-        {report?.recommendations?.map((r, i) => (
-          <div
-            key={i}
-            style={{
-              marginTop: 10,
-              padding: 14,
-              borderRadius: 12,
-              background: "rgba(59,130,246,.10)",
-              border: "1px solid rgba(96,165,250,.18)",
-              color: "#e2e8f0",
-            }}
-          >
-            <b style={{ color: "#f8fafc" }}>{r.title}</b>
-            <div style={{ marginTop: 6, color: "#cbd5e1", lineHeight: 1.7 }}>{r.detail}</div>
-          </div>
-        ))}
+        {report?.recommendations?.length ? (
+          report.recommendations.map((r, i) => (
+            <div
+              key={i}
+              style={{
+                marginTop: 10,
+                padding: 14,
+                borderRadius: 12,
+                background: "rgba(59,130,246,.10)",
+                border: "1px solid rgba(96,165,250,.18)",
+                color: "#e2e8f0",
+              }}
+            >
+              <b style={{ color: "#f8fafc" }}>{r.title}</b>
+              <div style={{ marginTop: 6, color: "#cbd5e1", lineHeight: 1.7 }}>{r.detail}</div>
+            </div>
+          ))
+        ) : (
+          <div style={{ color: "#cbd5e1" }}>暂无建议内容</div>
+        )}
       </div>
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>禁忌提示</h3>
-        {report?.contraindications?.map((c, i) => (
-          <div key={i} style={{ marginTop: 10, color: "#cbd5e1", lineHeight: 1.7 }}>
-            <b style={{ color: "#f8fafc" }}>{c.title}</b>：{c.detail}
-          </div>
-        ))}
+        {report?.contraindications?.length ? (
+          report.contraindications.map((c, i) => (
+            <div key={i} style={{ marginTop: 10, color: "#cbd5e1", lineHeight: 1.7 }}>
+              <b style={{ color: "#f8fafc" }}>{c.title}</b>：{c.detail}
+            </div>
+          ))
+        ) : (
+          <div style={{ color: "#cbd5e1" }}>暂无禁忌提示</div>
+        )}
       </div>
 
       <div style={{ ...cardStyle, marginTop: 18 }}>
         <h3 style={{ fontSize: 28, marginBottom: 16, color: "#f8fafc" }}>证据链（可解释路径）</h3>
-        {report?.evidence_paths?.map((p, i) => (
-          <div
-            key={i}
-            style={{
-              marginTop: 10,
-              padding: 14,
-              borderRadius: 12,
-              background: "rgba(255,255,255,.05)",
-              border: "1px solid rgba(148,163,184,.18)",
-              color: "#e2e8f0",
-            }}
-          >
-            <div style={{ lineHeight: 1.7 }}>
-              <b style={{ color: "#f8fafc" }}>路径：</b>{p.path.join(" → ")}
+        {report?.evidence_paths?.length ? (
+          report.evidence_paths.map((p, i) => (
+            <div
+              key={i}
+              style={{
+                marginTop: 10,
+                padding: 14,
+                borderRadius: 12,
+                background: "rgba(255,255,255,.05)",
+                border: "1px solid rgba(148,163,184,.18)",
+                color: "#e2e8f0",
+              }}
+            >
+              <div style={{ lineHeight: 1.7 }}>
+                <b style={{ color: "#f8fafc" }}>路径：</b>{p.path.join(" → ")}
+              </div>
+              <div style={{ marginTop: 6, color: "#94a3b8" }}>
+                来源：{p.source} ｜ 置信度：{p.confidence}
+              </div>
             </div>
-            <div style={{ marginTop: 6, color: "#94a3b8" }}>
-              来源：{p.source} ｜ 置信度：{p.confidence}
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div style={{ color: "#cbd5e1" }}>暂无证据链内容</div>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>

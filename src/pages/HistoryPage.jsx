@@ -11,14 +11,14 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch("http://localhost:3001/records");
+        const response = await fetch("http://127.0.0.1:5051/records");
 
         if (!response.ok) {
           throw new Error("Failed to fetch backend records");
         }
 
         const data = await response.json();
-        setHistory(data);
+        setHistory(Array.isArray(data) ? data : []);
         setSourceText("当前显示：后端记录");
       } catch (error) {
         console.error("Failed to load backend history, fallback to localStorage:", error);
@@ -44,17 +44,20 @@ export default function HistoryPage() {
     a.click();
     URL.revokeObjectURL(url);
     logAction("export_data");
+    setLogs(readLogs());
   };
 
   const handleClearHistory = () => {
     clearHistory();
     logAction("clear_history");
-    window.location.reload();
+    setHistory([]);
+    setLogs(readLogs());
+    setSourceText("当前显示：本地记录已清空");
   };
 
   const handleClearLogs = () => {
     clearLogs();
-    window.location.reload();
+    setLogs([]);
   };
 
   const pageStyle = {
@@ -91,6 +94,20 @@ export default function HistoryPage() {
     textDecoration: "none",
     fontWeight: 600,
     display: "inline-block",
+  };
+
+  const getTypeLabel = (type) => {
+    if (type === "questionnaire") return "问卷";
+    if (type === "text") return "文本";
+    if (type === "combined") return "联合评估";
+    return type || "未知";
+  };
+
+  const getRiskStyle = (risk) => {
+    if (risk === "高风险") return { color: "#fca5a5" };
+    if (risk === "中风险") return { color: "#fdba74" };
+    if (risk === "轻度关注") return { color: "#fde68a" };
+    return { color: "#86efac" };
   };
 
   return (
@@ -135,14 +152,24 @@ export default function HistoryPage() {
               }}
             >
               <div style={{ fontWeight: 700, color: "#f8fafc" }}>
-                {new Date(h.created_at).toLocaleString()} ｜ {h.type}
+                {h.created_at ? new Date(h.created_at).toLocaleString() : "-"} ｜ {getTypeLabel(h.type)}
               </div>
 
-              <div style={{ marginTop: 8, color: "#cbd5e1" }}>
-                分数：{h.phq9_score ?? "-"} ｜ 风险：{h.risk_level} ｜ 标签：{h.tags?.join(", ") || "无"}
+              <div style={{ marginTop: 8, color: "#cbd5e1", lineHeight: 1.8 }}>
+                分数：{h.phq9_score ?? "-"} ｜ 风险：
+                <span style={{ ...getRiskStyle(h.risk_level), fontWeight: 700 }}>
+                  {" "}{h.risk_level || "-"}
+                </span>
+                {" "}｜ 标签：{h.tags?.join("、") || "无"}
               </div>
 
-              <div style={{ marginTop: 10 }}>
+              {h.text ? (
+                <div style={{ marginTop: 8, color: "#94a3b8", lineHeight: 1.7 }}>
+                  文本摘要：{h.text.length > 60 ? `${h.text.slice(0, 60)}...` : h.text}
+                </div>
+              ) : null}
+
+              <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link
                   to={`/result?id=${encodeURIComponent(h.id)}`}
                   onClick={() => logAction("open_record", { id: h.id })}
